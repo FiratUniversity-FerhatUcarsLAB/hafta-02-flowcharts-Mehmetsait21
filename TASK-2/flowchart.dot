@@ -1,0 +1,141 @@
+ögrenci no 250541074 
+  AD VE ADSOYAD Mehmet sait TAYŞİ
+
+digraph ECommerceFlow {
+    // Genel Ayarlar
+    rankdir=TB;
+    node [shape=box, style=filled, fillcolor=lightblue];
+    
+    // Stiller
+    node [fontname="Arial"];
+    edge [fontname="Arial"];
+
+    // Başlangıç ve Bitiş
+    BASLA1 [label="BAŞLA\nKULLANICI GİRİŞİ", shape=Mdiamond, fillcolor=lightgreen];
+    BITIR1 [label="BİTİR\nÜRÜN EKLEME", shape=Mdiamond, fillcolor=salmon];
+    BITIR2 [label="BİTİR\nÖDEME İŞLEMİ", shape=Mdiamond, fillcolor=salmon];
+    
+    // Bölüm 1: Giriş ve Ürün Ekleme
+    BASLA1 -> A1;
+    A1 [label="EKRAN_GOSTER('Giriş Yap / Üye Ol / Misafir Devam Et')"];
+    
+    // KONTROL NOKTASI 1
+    K1 [label="KULLANICI OTURUMU VAR MI?", shape=diamond, fillcolor=yellow];
+    A1 -> K1;
+    K1 -> A2 [label="HAYIR", color=red];
+    K1 -> B1 [label="EVET", color=green]; // Doğrudan Alışveriş Döngüsüne
+
+    A2 [label="Giriş/Üyelik İşlemlerini Yap"];
+    A2 -> B1;
+    
+    // Ürün Ekleme Döngüsü
+    B1 [label="DÖNGÜ: Alışverişe Devam Ediliyor İken", shape=folder, fillcolor=lightgrey];
+    B1 -> B2 [label="Döngü Başla"];
+    B2 [label="URUN_SECIMI = KULLANICIDAN_URUN_VE_ADET_AL()"];
+    
+    // KONTROL NOKTASI 2
+    K2 [label="STOK_VERITABANI(Ürün) >= ADET mi?", shape=diamond, fillcolor=yellow];
+    B2 -> K2;
+    K2 -> B3 [label="EVET", color=green];
+    K2 -> B4 [label="HAYIR", color=red];
+    
+    B3 [label="SEPTE_EKLE(Ürün, Adet)"];
+    B4 [label="EKRAN_GOSTER('Yeterli stok yok.')", fillcolor=pink];
+
+    B3 -> K3;
+    B4 -> K3;
+    
+    K3 [label="DEVAM_ET == 'Sepete Git' mi?", shape=diamond, fillcolor=yellow];
+    K3 -> BITIR1 [label="EVET (DÖNGÜYÜ KES)", color=green, style=bold];
+    K3 -> B1 [label="HAYIR (Devam Et)", color=red, style=dashed];
+
+    // Akış Bağlantıları
+    BITIR1 -> BASLA2;
+
+
+    // Bölüm 2: Sepet Yönetimi ve Ön Hesaplama
+    BASLA2 [label="BAŞLA\nSEPET YÖNETİMİ", shape=Mdiamond, fillcolor=lightgreen];
+    BASLA2 -> C1;
+    C1 [label="Sepet Ürünlerini ve Toplam Tutarı Hesapla"];
+    
+    // KONTROL NOKTASI 3
+    K4 [label="İNDİRİM KODU KULLANILDI ve GEÇERLİ mi?", shape=diamond, fillcolor=yellow];
+    C1 -> K4;
+    K4 -> C2 [label="EVET", color=green];
+    K4 -> C3 [label="HAYIR", color=red];
+
+    C2 [label="İndirimi Uygula\nTOPLAM_TUTAR = TOPLAM_TUTAR - İNDİRİM"];
+    C3 [label="Adres Bilgisini Al (Teslimat/Fatura)"];
+    
+    C2 -> C3;
+    
+    C4 [label="KARGO_UCRETI = KARGO_HESAPLA()"];
+    C3 -> C4;
+
+    // KONTROL NOKTASI 4
+    K5 [label="TOPLAM_TUTAR >= ÜCRETSİZ KARGO LİMİTİ mi?", shape=diamond, fillcolor=yellow];
+    C4 -> K5;
+    K5 -> C5 [label="EVET", color=green];
+    K5 -> C6 [label="HAYIR", color=red];
+
+    C5 [label="KARGO_UCRETI = 0"];
+    C6 [label="SON_ODENECEK_TUTAR = Toplam + Kargo"];
+
+    C5 -> C6;
+    C6 -> BITIR3;
+
+    // Akış Bağlantıları
+    BITIR3 [label="BİTİR\nÖN HESAPLAMA", shape=Mdiamond, fillcolor=salmon];
+    BITIR3 -> BASLA3;
+
+
+    // Bölüm 3: Ödeme Aşaması
+    BASLA3 [label="BAŞLA\nÖDEME İŞLEMİ", shape=Mdiamond, fillcolor=lightgreen];
+    
+    // KONTROL NOKTASI 5: Son Stok Kontrolü
+    K6 [label="SON STOK KONTROLÜ BAŞARILI mı?\n(Sepet Adedi < Güncel Stok)", shape=diamond, fillcolor=yellow];
+    BASLA3 -> K6;
+    K6 -> BITIR2 [label="HAYIR\n(Sepete Geri Dön)", color=red, style=bold]; // Hata: Sipariş İptal
+    K6 -> D1 [label="EVET", color=green];
+
+    D1 [label="Ödeme Yöntemini Seç (Kart, Havale, Kapıda)"];
+    
+    // Kart Ödeme Kolu
+    D2 [label="EĞER ÖDEME YÖNTEMİ == KART İSE", shape=Msquare, fillcolor=white];
+    D1 -> D2;
+    D2 -> D3 [label="KART"];
+    
+    D3 [label="Kart Bilgilerini Al"];
+    
+    // KONTROL NOKTASI 6
+    K7 [label="3D Secure Kodu Başarıyla Doğrulandı mı?", shape=diamond, fillcolor=yellow];
+    D3 -> K7;
+    
+    D4 [label="SANAL POS ile İşlem Yap"];
+    K7 -> D4 [label="EVET", color=green];
+    K7 -> BITIR2 [label="HAYIR (Hata)", color=red, style=dashed]; // Hata: Ödeme Reddedildi
+
+    // KONTROL NOKTASI 7
+    K8 [label="SANAL POS/BANKA Onayı BAŞARILI mı?", shape=diamond, fillcolor=yellow];
+    D4 -> K8;
+    K8 -> D7 [label="EVET", color=green];
+    K8 -> BITIR2 [label="HAYIR (Hata)", color=red, style=dashed]; // Hata: Ödeme Başarısız
+
+    // Diğer Ödeme Yöntemleri
+    D5 [label="EĞER ÖDEME YÖNTEMİ == HAVALE İSE\nSIPARIS_DURUMU = 'Ödeme Bekleniyor'", shape=box];
+    D6 [label="EĞER ÖDEME YÖNTEMİ == KAPIDA ÖDEME İSE\nSIPARIS_DURUMU = 'Onaylandı (Kapıda Ödeme)'", shape=box];
+
+    D1 -> D5 [label="HAVALE"];
+    D1 -> D6 [label="KAPIDA"];
+    
+    D5 -> D7 [label="Devam"];
+    D6 -> D7 [label="Devam"];
+
+    // Başarılı İşlem Ortak Akışı
+    D7 [label="SIPARIŞ KAYDI OLUŞTUR ve\nSTOKTAN DÜŞ"];
+    D7 -> D8;
+    D8 [label="FATURA OLUŞTUR ve\nKULLANICI BİLGİLENDİR"];
+    
+    D8 -> BITIR2;
+
+}
