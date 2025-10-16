@@ -1,0 +1,67 @@
+digraph AkilliEvGuvenlikSistemi {
+    // Grafiğin genel ayarları
+    rankdir=TB; // Yukarıdan aşağıya akış (Top to Bottom)
+    node [shape=box, style="filled", fillcolor="#E0F7FA", fontname="Arial"];
+    edge [fontname="Arial"];
+
+    // Başlangıç ve Durdurma Noktaları (Oval)
+    baslangic [label="SİSTEMİ BAŞLAT (7/24)", shape=oval, fillcolor="#81C784"];
+    
+    // Ana Döngü (Dörtgen)
+    dongu [label="DÖNGÜ SÜREKLİ", shape=box, fillcolor="#B3E5FC"];
+    
+    // Karar Noktaları (Elmas)
+    aktif_mi [label="Güvenlik Durumu\nAKTİF mi?", shape=diamond, fillcolor="#FFCC80"];
+    veri_var_mi [label="Yeni Sensör\nVerisi Var mı?", shape=diamond, fillcolor="#FFCC80"];
+    tehdit_algilandi [label="Tehdit Algılandı mı?", shape=diamond, fillcolor="#FFCC80"];
+    
+    // İşlem Adımları (Dörtgen)
+    oku [label="1. Sensör Verilerini Oku", shape=box];
+    algila [label="2. Tehdit Algılama Algoritmasını Çalıştır", shape=box];
+    alarm_ver [label="3. Alarm Sistemini Çalıştır", shape=box, fillcolor="#FF8A80"];
+    bildirim_gonder [label="4. Kullanıcılara ve\nYetkililere Bildirim Gönder", shape=box, fillcolor="#FF8A80"];
+    sifirla [label="Alarmı Sıfırla\nDurumu 'AKTİF' Yap", shape=box];
+    pasif_bekle [label="Pasif/Kapalı Durumda\nTemel Kontrol Yap", shape=box, fillcolor="#E1BEE7"];
+    bekle [label="Kısa Bekleme", shape=box, fillcolor="#CFD8DC"];
+
+    // ********** AKIŞ BAĞLANTILARI **********
+
+    // Başlangıçtan Ana Döngüye
+    baslangic -> dongu;
+
+    // Ana Döngü Başlangıcı ve Kontroller
+    dongu -> aktif_mi;
+
+    // A. Güvenlik AKTİF Durumu Akışı
+    aktif_mi -> oku [label="EVET", color="green", penwidth=2];
+    
+    oku -> veri_var_mi;
+    
+    // Veri Varsa Tehdit Algılamaya Geç
+    veri_var_mi -> algila [label="EVET", color="green"];
+    
+    algila -> tehdit_algilandi;
+    
+    // Tehdit Algılanırsa Alarm ve Bildirim
+    tehdit_algilandi -> alarm_ver [label="EVET", color="red", penwidth=2];
+    
+    alarm_ver -> bildirim_gonder;
+    
+    bildirim_gonder -> bekle;
+    
+    // Tehdit Yoksa Alarmı Sıfırla
+    tehdit_algilandi -> sifirla [label="HAYIR", color="blue"];
+    
+    sifirla -> bekle;
+    
+    // Veri Yoksa Beklemeye Geç (Optimizasyon)
+    veri_var_mi -> bekle [label="HAYIR", color="gray"];
+    
+    // B. Güvenlik PASİF Durumu Akışı
+    aktif_mi -> pasif_bekle [label="HAYIR", color="red"];
+
+    pasif_bekle -> bekle;
+    
+    // Döngünün Kapanışı
+    bekle -> dongu [label="Tekrarla", style="dashed"];
+}
