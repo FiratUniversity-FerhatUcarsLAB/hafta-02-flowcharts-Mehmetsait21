@@ -1,0 +1,88 @@
+digraph DersKayitAkisi {
+    // Grafik Ayarları
+    rankdir=TB; // Yukaridan asagi (Top to Bottom)
+    node [shape=box]; // Varsayilan dugum sekli
+
+    // Dugumler (N: Node)
+    N0 [label="BAŞLA\n(Öğrenci Girişi)"];
+    N1 [label="Harç Borcu Kontrolü\n(Borcu Var mı?)", shape=diamond];
+    N2 [label="GANO Getir ve Maks. Kredi Limiti Belirle"];
+    N3 [label="Secilen_Dersler_Listesi için DÖNGÜ BAŞLAT"];
+    N4 [label="Ders A: Kontenjan Dolu mu?", shape=diamond];
+    N5 [label="Ders A: Ön Koşul Var mı?", shape=diamond];
+    N6 [label="Ön Koşul Dersi (Ders B) Başarılı mı?", shape=diamond];
+    N7 [label="Dersler A ve B: Zaman Çakışıyor mu?", shape=diamond];
+    N8 [label="Toplam Krediyi Hesapla"];
+    N9 [label="DÖNGÜ SONU"];
+    N10 [label="Toplam Kredi > Limit mi?", shape=diamond];
+    N11 [label="Kayit Geçerli mi?", shape=diamond];
+    N12 [label="Danışman Onayına Gönder\n(KAYIT BAŞARILI)", shape=box, style=filled, fillcolor=lightgreen];
+    N13 [label="HATA: Borç Öde!", shape=box, style=filled, fillcolor=salmon];
+    N14 [label="HATA: Kontenjan Dolu!", shape=box, style=filled, fillcolor=salmon];
+    N15 [label="HATA: Ön Koşul Eksik!", shape=box, style=filled, fillcolor=salmon];
+    N16 [label="HATA: Zaman Çakışması!", shape=box, style=filled, fillcolor=salmon];
+    N17 [label="HATA: Kredi Limiti Aşıldı!\n(Düzeltme Gerekli)", shape=box, style=filled, fillcolor=salmon];
+    N18 [label="HATA: Seçimleri Düzenle\n(KAYIT BAŞARISIZ)", shape=box, style=filled, fillcolor=red];
+    N19 [label="SON"];
+
+    // Akış Bağlantıları
+    N0 -> N1;
+    
+    // Harç Kontrolü
+    N1:e -> N13 [label="Evet"];
+    N1:s -> N2 [label="Hayır"];
+
+    // Kredi Limiti Belirleme
+    N2 -> N3;
+
+    // Dersler Üzerinde Döngü
+    N3 -> N4 [label="Her Ders A"];
+
+    // Kontenjan Kontrolü
+    N4 -> N14 [label="Evet\n(Kayit Geçerli=Hata)"];
+    N4 -> N5 [label="Hayır"];
+
+    // Ön Koşul Kontrolü
+    N5 -> N6 [label="Ön Koşul Var"];
+    N5 -> N7 [label="Ön Koşul Yok"];
+
+    // Ön Koşul Başarı Kontrolü
+    N6 -> N15 [label="Başarısız\n(Kayit Geçerli=Hata)"];
+    N6 -> N7 [label="Başarılı"];
+
+    // Zaman Çakışması Kontrolü
+    N7 -> N16 [label="Çakışıyor\n(Kayit Geçerli=Hata)"];
+    N7 -> N8 [label="Çakışmıyor"];
+    
+    // Kredi Hesaplama
+    N8 -> N3 [label="Döngüye Devam Et"]; // Döngü tekrarı
+
+    // Döngü Sonu ve Kredi Limit Kontrolü
+    N3 -> N9 [label="Tüm Dersler Bitti"];
+    N9 -> N10;
+
+    // Toplam Kredi Kontrolü
+    N10 -> N17 [label="Evet"];
+    N10 -> N11 [label="Hayır"];
+
+    // Sonuç Kontrolü
+    N11 -> N12 [label="Geçerli=Evet"];
+    N11 -> N18 [label="Geçerli=Hayır"];
+
+    // Hata akışları tekrar N18'e yönlendirebilir veya direkt sona gidebilir. Basitlik için sona gitsin.
+    N13 -> N19;
+    N14 -> N9 [label="Döngüye Devam Et"]; // Hatadan sonra da döngü devam edebilir.
+    N15 -> N9 [label="Döngüye Devam Et"];
+    N16 -> N9 [label="Döngüye Devam Et"];
+    N17 -> N18;
+
+    N12 -> N19;
+    N18 -> N19;
+
+    // Görsel gruplama (optional)
+    subgraph cluster_loop {
+        label = "Dersler Üzerindeki Döngü";
+        style = rounded;
+        N3; N4; N5; N6; N7; N8;
+    }
+}
