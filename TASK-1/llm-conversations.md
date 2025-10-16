@@ -1,3 +1,7 @@
+İsim - Soy isim Mehmet Sait Tayşi
+Öğrenci No:250541074
+
+
 ATM para cekme sistemi için detaylı pseudocode yazmanı istiyorum.
 
 Sunları icermeli: PIN dogrulama (3 hak), bakiye kontrolu, tutar
